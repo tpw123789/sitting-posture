@@ -1,8 +1,8 @@
 import sys
 import os
 from sys import platform
-import argparse
 import cv2
+import codecs, json
 
 # Import OpenPose (Windows/Ubuntu/OSX)
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -29,50 +29,56 @@ except ImportError as e:
 
 
 class OpenPose():
-    """ Custom Params (refer to include/openpose/flags.hpp for more parameters) """
-    def __init__(self):
+    def __init__(self, file_path):
+        # Custom Params (refer to include/openpose/flags.hpp for more parameters)
         self.params = dict()
         self.params['model_folder'] = 'openpose/models/'
         self.params["net_resolution"] = "-1x160"
         self.params["model_pose"] = "COCO"
-        self.imageToProcess = cv2.imread('./media/user_sent.jpg')
+        self.imageToProcess = cv2.imread(file_path)
         self.imageToProcess = cv2.resize(self.imageToProcess, (256, 256), interpolation=cv2.INTER_CUBIC)
 
+    # Starting OpenPose
+    def openpose_wrapper(self, params):
+        opWrapper = op.WrapperPython()
+        opWrapper.configure(params)
+        opWrapper.start()
+        return opWrapper
+
+    # Process Image
+    def process_image(self, opWrapper):
+        datum = op.Datum()
+        datum.cvInputData = self.imageToProcess
+        opWrapper.emplaceAndPop(op.VectorDatum([datum]))
+        # 回傳圖片陣列+關鍵點陣列
+        return datum.cvOutputData, datum.poseKeypoints
+
+    # 骨架圖
     def skeleton_image(self):
         self.params["disable_blending"] = 'True'
-        # Starting OpenPose
-        opWrapper = op.WrapperPython()
-        opWrapper.configure(self.params)
-        opWrapper.start()
+        opWrapper = self.openpose_wrapper(self.params)
         self.params["disable_blending"] = 'False'
+        img_array, key_points = self.process_image(opWrapper)
+        cv2.imwrite('./media/user_sent_skeleton.jpg', img_array)
+        print('Body key points:\n{}'.format(key_points))
+        with codecs.open('media/user_sent_key_points.json', 'w', encoding='utf-8') as fn:
+            json.dump(key_points[0][:, [0, 1]].tolist(), fn, indent=4)
 
-        # Process Image
-        datum = op.Datum()
-        datum.cvInputData = self.imageToProcess
-        opWrapper.emplaceAndPop(op.VectorDatum([datum]))
-        cv2.imwrite('./media/user_sent_skeleton.jpg', datum.cvOutputData)
-
+    # 原圖 + 骨架
     def people_skeleton_image(self):
-        # Starting OpenPose
-        opWrapper = op.WrapperPython()
-        opWrapper.configure(self.params)
-        opWrapper.start()
+        opWrapper = self.openpose_wrapper(self.params)
+        img_array, key_points = self.process_image(opWrapper)
+        cv2.imwrite('./media/user_sent_people_skeleton.jpg', img_array)
+        print('Body key points:\n{}'.format(key_points))
+        with codecs.open('media/user_sent_key_points.json', 'w', encoding='utf-8') as fn:
+            json.dump(key_points[0][:, [0, 1]].tolist(), fn, indent=4)
 
-        # Process Image
-        datum = op.Datum()
-        datum.cvInputData = self.imageToProcess
-        opWrapper.emplaceAndPop(op.VectorDatum([datum]))
-        cv2.imwrite('./media/user_sent_people_skeleton.jpg', datum.cvOutputData)
 
-a = OpenPose()
+a = OpenPose('media/user_sent.jpg')
 a.skeleton_image()
-a.people_skeleton_image()
 
 
-# # Save Image
-# print('Body key points: ')
-# a = datum.poseKeypoints
-# cv2.imshow("OpenPose 1.7.0 - Tutorial Python API", datum.cvOutputData)
+
 
 
 

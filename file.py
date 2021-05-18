@@ -12,3 +12,5 @@ class File(object):
         img = Image.open(BytesIO(raw))
         img.save(file_path)
         return img, file_path
+
+
