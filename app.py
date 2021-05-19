@@ -5,14 +5,10 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageMessage
 from file import File
+from cnn import AI
+from openpose import OpenPose
 
 app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return 'Home Page'
-
-
 # Channel Access Token
 file = open('./channel_access_token.txt', encoding='utf-8')
 text = file.read().strip()
@@ -67,7 +63,8 @@ def handle_content_message(event):
     else:
         message_content = line_bot_api.get_message_content(event.message.id)
         img, file_path = file.save_bytes_image(message_content.content)
-        pred = ai.predict_image_with_path(file_path)
+        OpenPose(file_path).skeleton_image()
+        pred = ai.predict_image_with_path('media/user_sent_skeleton.jpg')
         line_bot_api.reply_message(
             event.reply_token, [
                 TextSendMessage(text=pred)
