@@ -2,7 +2,8 @@ import sys
 import os
 from sys import platform
 import cv2
-import codecs, json
+import codecs
+import json
 
 # Import OpenPose (Windows/Ubuntu/OSX)
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -39,7 +40,8 @@ class OpenPose():
         self.imageToProcess = cv2.resize(self.imageToProcess, (256, 256), interpolation=cv2.INTER_CUBIC)
 
     # Starting OpenPose
-    def openpose_wrapper(self, params):
+    @staticmethod
+    def openpose_wrapper(params):
         opWrapper = op.WrapperPython()
         opWrapper.configure(params)
         opWrapper.start()
