@@ -76,6 +76,8 @@ class OpenPose():
             json.dump(key_points[0][:, [0, 1]].tolist(), fn, indent=4)
 
 
+a = OpenPose()
+
 
 
 
