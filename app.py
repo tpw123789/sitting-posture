@@ -3,9 +3,10 @@ import os
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageMessage, AudioMessage, VideoMessage
 from file import File
-from cnn import AI
+from ai import AI
+from crop_img import CropImg
 from openpose import OpenPose
 
 app = Flask(__name__)
@@ -51,10 +52,10 @@ def handle_content_message(event):
     if isinstance(event.message, ImageMessage):
         ext = 'jpg'
         is_image = True
-    # elif isinstance(event.message, VideoMessage):
-    #     ext = 'mp4'
-    # elif isinstance(event.message, AudioMessage):
-    #     ext = 'm4a'
+    elif isinstance(event.message, VideoMessage):
+        ext = 'mp4'
+    elif isinstance(event.message, AudioMessage):
+        ext = 'm4a'
     else:
         return
 
@@ -64,10 +65,16 @@ def handle_content_message(event):
         message_content = line_bot_api.get_message_content(event.message.id)
         img, file_path = file.save_bytes_image(message_content.content)
         OpenPose(file_path).skeleton_image()
-        pred = ai.predict_image_with_path('media/user_sent_skeleton.jpg')
+        cropImg = CropImg()
+        cropImg.body_crop('head')
+        cropImg.body_crop('shoulder')
+        cropImg.body_crop('foot')
+        head_pred = ai.head_predict('./media/crop_head.jpg')
+        shoulder_pred = ai.shoulder_predict('./media/crop_shoulder.jpg')
+        foot_pred = ai.foot_predict('./media/crop_foot.jpg')
         line_bot_api.reply_message(
             event.reply_token, [
-                TextSendMessage(text=pred)
+                TextSendMessage(text=head_pred + '\n' + shoulder_pred + '\n' + foot_pred)
             ])
 
 
@@ -78,6 +85,7 @@ def index():
 
 ai = AI()
 file = File()
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))

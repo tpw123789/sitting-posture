@@ -50,12 +50,11 @@ class CropImg:
         idx = np.nonzero(y)
         top, bottom = (0, 10) if sum(y) == 0 else (min(y[idx]) - 10, max(y[idx]) + 10)
         with Image.open('./media/user_sent_skeleton.jpg') as img:
-            img_crop = img.crop((left, top, right, bottom)).resize((256, 256))
+            img_crop = img.crop((left, top, right, bottom))
             img_crop.save('./media/crop_' + body_part + '.jpg')
             img_crop = np.array(img_crop)
         print('Successfully crop image.')
         return img_crop
-
 
 
 
