@@ -53,7 +53,7 @@ class CropImg:
             img_crop = img.crop((left, top, right, bottom))
             img_crop.save('./media/crop_' + body_part + '.jpg')
             img_crop = np.array(img_crop)
-        print('Successfully crop image.')
+        print('Successfully crop ' + body_part + ' image.')
         return img_crop
 
 

@@ -109,10 +109,7 @@ class AI(object):
         im = im.reshape(1, 256, 256, 3) / 255.0
         pre = self.hd_model.predict(im)[0][0]
         print('頭部預測數值', pre)
-        if round(pre) == 1:
-            return '頭姿勢錯誤'
-        else:
-            return '頭姿勢正確'
+        return pre
 
     def shoulder_predict(self, file_path):
         im = Image.open(file_path).resize((256, 256)).convert('RGB')
@@ -120,10 +117,7 @@ class AI(object):
         im = im.reshape(1, 256, 256, 3) / 255.0
         pre = self.sho_model.predict(im)[0][0]
         print('肩膀預測數值', pre)
-        if round(pre) == 1:
-            return '肩膀姿勢錯誤'
-        else:
-            return '肩膀姿勢正確'
+        return pre
 
     def foot_predict(self, file_path):
         im = Image.open(file_path).resize((256, 256)).convert('RGB')
@@ -131,9 +125,5 @@ class AI(object):
         im = im.reshape(1, 256, 256, 3) / 255.0
         pre = self.ft_model.predict(im)[0][0]
         print('腳部預測數值', pre)
-        if round(pre) == 1:
-            return '腳姿勢錯誤'
-        else:
-            return '腳姿勢正確'
+        return pre
 
-AI()

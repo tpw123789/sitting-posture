@@ -65,6 +65,7 @@ def handle_content_message(event):
         message_content = line_bot_api.get_message_content(event.message.id)
         img, file_path = file.save_bytes_image(message_content.content)
         OpenPose(file_path).skeleton_image()
+        OpenPose(file_path).people_skeleton_image()
         cropImg = CropImg()
         cropImg.body_crop('head')
         cropImg.body_crop('shoulder')
@@ -72,10 +73,17 @@ def handle_content_message(event):
         head_pred = ai.head_predict('./media/crop_head.jpg')
         shoulder_pred = ai.shoulder_predict('./media/crop_shoulder.jpg')
         foot_pred = ai.foot_predict('./media/crop_foot.jpg')
+        reply = '以下為坐姿預測:\n頭部錯誤預測值：{}\n肩部錯誤預測值: {}\n腳部錯誤預測值: {}\n'.format(head_pred, shoulder_pred, foot_pred)
+        correct = '判斷正確部位: '
+        wrong = '判斷錯誤部位: '
+        for result, part in zip((head_pred, shoulder_pred, foot_pred), ('頭部', '肩部', '腳部')):
+            if round(result) == 1:
+                wrong += part + ' '
+            else:
+                correct += part + ' '
         line_bot_api.reply_message(
             event.reply_token, [
-                TextSendMessage(text=head_pred + '\n' + shoulder_pred + '\n' + foot_pred)
-            ])
+                TextSendMessage(text=reply + correct + '\n' + wrong)])
 
 
 @app.route('/')
