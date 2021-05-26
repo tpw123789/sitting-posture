@@ -24,7 +24,10 @@ class AI(object):
         self.ans_hd_arr = np.array(self.ans['head'])
         self.ans_sho_arr = np.array(self.ans['shoulder'])
         self.ans_ft_arr = np.array(self.ans['foot'])
-        self.init_default()
+        self.hd_model = load_model('model/crop_hd_cnn.h5')
+        self.sho_model = load_model('model/crop_sho_cnn.h5')
+        self.ft_model = load_model('model/crop_ft_cnn.h5')
+        print('Model Reloaded')
 
     def init_default(self):
         # head part
@@ -48,60 +51,50 @@ class AI(object):
             test_size=0.1)
         ft_x_train_norm, ft_x_test_norm = ft_x_train / 255, ft_x_test / 255
         # create model
-        # layers = [
-        #     Conv2D(32, 3, padding="same", activation="relu", input_shape=(256, 256, 3)),
-        #     MaxPooling2D(),
-        #     Conv2D(64, 3, padding="same", activation="relu"),
-        #     MaxPooling2D(),
-        #     Conv2D(128, 3, padding="same", activation="relu"),
-        #     MaxPooling2D(),
-        #     Conv2D(256, 3, padding="same", activation="relu"),
-        #     MaxPooling2D(),
-        #     Conv2D(512, 3, padding="same", activation="relu"),
-        #     GlobalAveragePooling2D(),
-        #     Dense(1, activation="sigmoid")
-        # ]
-        # self.hd_model = Sequential(layers)
-        # # hd_model.summary()
-        # self.sho_model = Sequential(layers)
-        # # sho_model.summary()
-        # self.ft_model = Sequential(layers)
+        layers = [
+            Conv2D(32, 3, padding="same", activation="relu", input_shape=(256, 256, 3)),
+            MaxPooling2D(),
+            Conv2D(64, 3, padding="same", activation="relu"),
+            MaxPooling2D(),
+            Conv2D(128, 3, padding="same", activation="relu"),
+            MaxPooling2D(),
+            Conv2D(256, 3, padding="same", activation="relu"),
+            MaxPooling2D(),
+            Conv2D(512, 3, padding="same", activation="relu"),
+            GlobalAveragePooling2D(),
+            Dense(1, activation="sigmoid")
+        ]
+        hd_model = Sequential(layers)
+        # hd_model.summary()
+        sho_model = Sequential(layers)
+        # sho_model.summary()
+        ft_model = Sequential(layers)
         # ft_model.summary()
 
         # compile
-        # self.hd_model.compile(loss=BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
-        # self.sho_model.compile(loss=BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
-        # self.ft_model.compile(loss=BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
+        hd_model.compile(loss=BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
+        sho_model.compile(loss=BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
+        ft_model.compile(loss=BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
 
         # fit
-        # self.hd_model.fit(
-        #     hd_x_train_norm, hd_y_train, batch_size=20, epochs=50, validation_split=0.1, verbose=2,
-        #     callbacks=[
-        #         EarlyStopping(patience=5, restore_best_weights=True),
-        #         ModelCheckpoint("crop_hd_cnn.h5", save_best_only=True)
-        #     ])
-        # self.sho_model.fit(
-        #     sho_x_train_norm, sho_y_train, batch_size=20, epochs=50, validation_split=0.1, verbose=2,
-        #     callbacks=[
-        #         EarlyStopping(patience=5, restore_best_weights=True),
-        #         ModelCheckpoint("crop_sho_cnn.h5", save_best_only=True)
-        #     ])
-        # self.ft_model.fit(
-        #     ft_x_train_norm, ft_y_train, batch_size=20, epochs=50, validation_split=0.1, verbose=2,
-        #     callbacks=[
-        #         EarlyStopping(patience=5, restore_best_weights=True),
-        #         ModelCheckpoint("crop_ft_cnn.h5", save_best_only=True)
-        #     ])
-        self.hd_model = load_model('model/crop_hd_cnn.h5')
-        self.sho_model = load_model('model/crop_sho_cnn.h5')
-        self.ft_model = load_model('model/crop_ft_cnn.h5')
-        result1 = self.hd_model.evaluate(hd_x_test_norm, hd_y_test)
-        result2 = self.sho_model.evaluate(sho_x_test_norm, sho_y_test)
-        result3 = self.ft_model.evaluate(ft_x_test_norm, ft_y_test)
-        print(result1)
-        print(result2)
-        print(result3)
-        print('Model Reloaded')
+        hd_model.fit(
+            hd_x_train_norm, hd_y_train, batch_size=20, epochs=50, validation_split=0.1, verbose=2,
+            callbacks=[
+                EarlyStopping(patience=5, restore_best_weights=True),
+                ModelCheckpoint("crop_hd_cnn.h5", save_best_only=True)
+            ])
+        sho_model.fit(
+            sho_x_train_norm, sho_y_train, batch_size=20, epochs=50, validation_split=0.1, verbose=2,
+            callbacks=[
+                EarlyStopping(patience=5, restore_best_weights=True),
+                ModelCheckpoint("crop_sho_cnn.h5", save_best_only=True)
+            ])
+        ft_model.fit(
+            ft_x_train_norm, ft_y_train, batch_size=20, epochs=50, validation_split=0.1, verbose=2,
+            callbacks=[
+                EarlyStopping(patience=5, restore_best_weights=True),
+                ModelCheckpoint("crop_ft_cnn.h5", save_best_only=True)
+            ])
 
     def head_predict(self, file_path):
         im = Image.open(file_path).resize((256, 256)).convert('RGB')

@@ -36,6 +36,7 @@ class OpenPose():
         self.params['model_folder'] = 'openpose/models/'
         self.params["net_resolution"] = "-1x160"
         self.params["model_pose"] = "COCO"
+        self.params["disable_blending"] = 'True'
         self.imageToProcess = cv2.imread(file_path)
         self.imageToProcess = cv2.resize(self.imageToProcess, (256, 256), interpolation=cv2.INTER_CUBIC)
 
@@ -57,27 +58,27 @@ class OpenPose():
 
     # 骨架圖
     def skeleton_image(self):
-        self.params["disable_blending"] = 'True'
         opWrapper = self.openpose_wrapper(self.params)
-        self.params["disable_blending"] = 'False'
         img_array, key_points = self.process_image(opWrapper)
-        cv2.imwrite('./media/user_sent_skeleton.jpg', img_array)
+        file_path = './media/user_sent_skeleton.jpg'
+        cv2.imwrite(file_path, img_array)
         print('Body key points:\n{}'.format(key_points))
         with codecs.open('media/user_sent_key_points.json', 'w', encoding='utf-8') as fn:
             json.dump(key_points[0][:, [0, 1]].tolist(), fn, indent=4)
+        return file_path
 
     # 原圖 + 骨架
     def people_skeleton_image(self):
+        self.params["disable_blending"] = 'False'
         opWrapper = self.openpose_wrapper(self.params)
+        self.params["disable_blending"] = 'True'
         img_array, key_points = self.process_image(opWrapper)
-        cv2.imwrite('./media/user_sent_people_skeleton.jpg', img_array)
+        file_path = './media/user_sent_people_skeleton.jpg'
+        cv2.imwrite(file_path, img_array)
         print('Body key points:\n{}'.format(key_points))
         with codecs.open('media/user_sent_key_points.json', 'w', encoding='utf-8') as fn:
             json.dump(key_points[0][:, [0, 1]].tolist(), fn, indent=4)
-
-
-
-
+        return file_path
 
 
 

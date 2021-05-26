@@ -64,18 +64,18 @@ def handle_content_message(event):
     else:
         message_content = line_bot_api.get_message_content(event.message.id)
         img, file_path = file.save_bytes_image(message_content.content)
-        OpenPose(file_path).skeleton_image()
-        OpenPose(file_path).people_skeleton_image()
-        cropImg = CropImg()
-        cropImg.body_crop('head')
-        cropImg.body_crop('shoulder')
-        cropImg.body_crop('foot')
-        head_pred = ai.head_predict('./media/crop_head.jpg')
-        shoulder_pred = ai.shoulder_predict('./media/crop_shoulder.jpg')
-        foot_pred = ai.foot_predict('./media/crop_foot.jpg')
-        reply = '以下為坐姿預測:\n頭部錯誤預測值：{}\n肩部錯誤預測值: {}\n腳部錯誤預測值: {}\n'.format(head_pred, shoulder_pred, foot_pred)
-        correct = '判斷正確部位: '
-        wrong = '判斷錯誤部位: '
+        # 圖片轉成黑底骨架圖 回傳圖片路徑
+        file_path = OpenPose(file_path).skeleton_image()
+        # 切割 頭,肩膀,腳  回傳圖片路徑
+        head_path, shoulder_path, foot_path = (CropImg().body_crop(file_path, body_part) for
+                                               body_part in ('head', 'shoulder', 'foot'))
+        # 預測圖片 + 輸出結果
+        head_pred = ai.head_predict(head_path)
+        shoulder_pred = ai.shoulder_predict(shoulder_path)
+        foot_pred = ai.foot_predict(foot_path)
+        reply = f'以下為坐姿預測:\n頭部錯誤預測值：{head_pred}\n肩部錯誤預測值: {shoulder_pred}\n腳部錯誤預測值: {foot_pred}\n'
+        correct = '判斷為正確部位: '
+        wrong = '判斷為錯誤部位: '
         for result, part in zip((head_pred, shoulder_pred, foot_pred), ('頭部', '肩部', '腳部')):
             if round(result) == 1:
                 wrong += part + ' '
@@ -88,7 +88,7 @@ def handle_content_message(event):
 
 @app.route('/')
 def index():
-    return 'Hello ttGroup'
+    return 'Home Page'
 
 
 ai = AI()

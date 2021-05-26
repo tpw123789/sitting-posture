@@ -40,7 +40,7 @@ class CropImg:
             self.data = np.array(self.data).reshape(1, 36)
             self.key_points = pd.DataFrame(self.data, columns=self.columns["coco_col"])
 
-    def body_crop(self, body_part):
+    def body_crop(self, file_path, body_part):
         x = self.key_points[self.columns[body_part]['x']][0:1]
         x = x.astype(int).iloc[0].values
         idx = np.nonzero(x)
@@ -49,12 +49,13 @@ class CropImg:
         y = y.astype(int).iloc[0].values
         idx = np.nonzero(y)
         top, bottom = (0, 10) if sum(y) == 0 else (min(y[idx]) - 10, max(y[idx]) + 10)
-        with Image.open('./media/user_sent_skeleton.jpg') as img:
+        with Image.open(file_path) as img:
             img_crop = img.crop((left, top, right, bottom))
-            img_crop.save('./media/crop_' + body_part + '.jpg')
+            img_path = './media/crop_' + body_part + '.jpg'
+            img_crop.save(img_path)
             img_crop = np.array(img_crop)
         print('Successfully crop ' + body_part + ' image.')
-        return img_crop
+        return img_path
 
 
 
