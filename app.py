@@ -63,6 +63,7 @@ def handle_content_message(event):
         line_bot_api.reply_message(event.reply_token, '這好像不是圖片唷')
     else:
         message_content = line_bot_api.get_message_content(event.message.id)
+        # 轉圖片
         img, file_path = file.save_bytes_image(message_content.content)
         # 圖片轉成黑底骨架圖 回傳圖片路徑
         file_path = OpenPose(file_path).skeleton_image()
@@ -88,7 +89,7 @@ def handle_content_message(event):
 
 @app.route('/')
 def index():
-    return '<br>Home ddfPage<br>'
+    return 'fgfdgfdgfdge'
 
 
 ai = AI()
