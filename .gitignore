@@ -143,5 +143,8 @@ cython_debug/
 .idea
 *.iml
 
-# openpose
-/openpose
+# exclude everything
+openpose/*
+
+# exception to the rule
+!openpose/.gitkeep
